@@ -44,11 +44,14 @@ function preload() {
 }
 
 // ========================================================
-// ⚙️ [Setup] 모바일 반응형 캔버스 및 버튼 생성
+// ⚙️ [Setup] 모바일 반응형 캔버스 및 버튼 생성 (위치 고정 반영)
 // ========================================================
 function setup() {
   let canvasWidth = min(windowWidth, 600);
-  createCanvas(canvasWidth, 600); 
+  
+  // 🛠️ 수정: 캔버스를 HTML의 #game-container 내부에 종속시킵니다.
+  let myCanvas = createCanvas(canvasWidth, 600); 
+  myCanvas.parent('game-container');
   
   let canvasElement = document.getElementById('defaultCanvas0');
   if (canvasElement) {
@@ -58,6 +61,10 @@ function setup() {
   // 선택지용 html 버튼 3개 동적 생성 및 기본 스타일링
   for (let i = 0; i < 3; i++) {
     let btn = createButton('');
+    
+    // 🛠️ 수정: 버튼들의 기준점을 #game-container 바구니로 묶어줍니다.
+    btn.parent('game-container'); 
+    
     btn.style('background-color', '#0f3460');
     btn.style('color', 'white');
     btn.style('font-size', '14px');
@@ -76,6 +83,7 @@ function setup() {
   
   // 마일스톤(다음 이야기 진행하기) 버튼 생성
   nextActionButton = createButton('▶ 다음 이야기 진행하기');
+  nextActionButton.parent('game-container'); // 🛠️ 수정: 바구니 내부 귀속
   nextActionButton.style('background-color', '#e94560');
   nextActionButton.style('color', 'white');
   nextActionButton.style('font-size', '14px');
@@ -84,7 +92,6 @@ function setup() {
   nextActionButton.style('cursor', 'pointer');
   nextActionButton.style('text-align', 'center');
   
-  // 🛠️ 버그 억제: 다음 이야기 버튼에도 중복 터치 버그 방지(stopPropagation) 적용
   nextActionButton.mousePressed((e) => {
     if(e) e.stopPropagation();
     moveToNextStep();
@@ -309,12 +316,12 @@ function loadStageScenario() {
 
   shuffle(currentOptions, true);
 
+  // 🛠️ 수정: PC 화면 중앙 정렬 시 버튼이 알맞게 매칭되도록 캔버스 왼쪽 마진(X좌표는 15 고정) 보정
   for (let i = 0; i < 3; i++) {
     choiceButtons[i].html(`${i + 1}. ${currentOptions[i][0]}`);
     choiceButtons[i].position(15, textBoxY + textBoxH + 15 + (i * 50)); 
     choiceButtons[i].size(width - 30, 42); 
     
-    // 🛠️ 버그 억제 핵심: e.stopPropagation()을 주입해 버튼 클릭이 바탕화면 터치로 전파되는 현상 차단!
     choiceButtons[i].mousePressed((e) => {
       if(e) e.stopPropagation(); 
       handleOptionSelect(i);
@@ -391,7 +398,7 @@ function handleOptionSelect(index) {
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n인파를 헤치며 혼자 나아갔다. 뒤돌아보니 그 애가 인파 속에서 사라졌다."; stats.정떨 += scoreValue; }
       scenarioStep = 12;
     } else if (scenarioStep === 12) {
-      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n초코우유를 사 들고 벤치에 앉아 통한를 이어갔다. 달콤한 웃음이 가득하다."; stats.에겐력 += scoreValue; }
+      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n초코우유를 사 들고 벤치에 앉아 통화를 이어갔다. 달콤한 웃음이 가득하다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n'주소 보내. 지금 바로 간다.' 취했어도 걱정이 앞서는 직진남."; stats.테토력 += scoreValue; }
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n전화를 뚝 끊어버렸다. 다음 날 카톡이 온다. '어젠 왜 전화했어?'"; stats.정떨 += scoreValue; }
       scenarioStep = 13;
@@ -459,7 +466,7 @@ function mousePressed() {
         resultMsg = "🌱 [테토 고백]\n\n(먼 곳을 응시하며 툭 내뱉듯이)\n나랑 사귀자. 잘해줄게.";
         endingImg = imgTeto;
       } else {
-        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사ꈈ 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
+        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사귈 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
         endingImg = imgJung;
       }
       
@@ -468,6 +475,7 @@ function mousePressed() {
       
       if (!finalizeBtn) {
         finalizeBtn = createButton('게임 완전히 처음부터 다시하기');
+        finalizeBtn.parent('game-container'); // 🛠️ 수정: 바구니 내부 귀속
         finalizeBtn.style('background-color', '#e94560');
         finalizeBtn.style('color', 'white');
         finalizeBtn.style('border', 'none');
