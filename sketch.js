@@ -22,7 +22,7 @@ let endingImg = null;
 let maxStatResult = "";
 
 let textBoxY = 65;
-let textBoxH = 260;
+let textBoxH = 260; // 상황 텍스트 전체 박스 높이
 
 // ========================================================
 // ⏳ [Preload] 이미지 자원 미리 불러오기
@@ -42,8 +42,7 @@ function preload() {
 // ========================================================
 function setup() {
   let canvasWidth = min(windowWidth, 600);
-  
-  // 🛠️ 수정: 캔버스를 전용 홀더인 #canvas-holder 내부에 넣습니다.
+  // HTML의 #canvas-holder 내부에 캔버스 배치
   let myCanvas = createCanvas(canvasWidth, 600); 
   myCanvas.parent('canvas-holder');
   
@@ -52,19 +51,18 @@ function setup() {
     canvasElement.style.touchAction = 'none';
   }
   
-  // 선택지용 html 버튼 3개 동적 생성 및 하단 버튼 컨테이너로 귀속
+  // 선택지용 p5 버튼 3개 생성
   for (let i = 0; i < 3; i++) {
     let btn = createButton('');
-    btn.parent('button-container'); 
+    btn.parent('game-container'); // 메인 컨테이너에 귀속시켜 자유 배치
     btn.hide(); 
     choiceButtons.push(btn);
   }
   
-  // 마일스톤(다음 이야기 진행하기) 버튼 생성
+  // 다음 이야기 진행하기 버튼 생성
   nextActionButton = createButton('▶ 다음 이야기 진행하기');
-  nextActionButton.parent('button-container'); 
+  nextActionButton.parent('game-container');
   nextActionButton.class('action-btn'); 
-  
   nextActionButton.mousePressed((e) => {
     if(e) e.stopPropagation();
     moveToNextStep();
@@ -82,15 +80,16 @@ function draw() {
   
   drawTopStatsBar();
   
+  // 상황 텍스트 상자 그리기
   fill('#0f172a');
-  stroke('#000000');
+  stroke('#ffffff');
   strokeWeight(1);
   
   if (currentStage === 5 && scenarioStep === 1) {
     textBoxH = 120;
     rect(15, textBoxY, width - 30, textBoxH, 5);
   } else {
-    textBoxH = 260;
+    textBoxH = 515; // 🛠️ 박스 높이를 하단 공간까지 크게 확장하여 버튼 수용 영역 확보
     rect(15, textBoxY, width - 30, textBoxH, 5);
   }
   
@@ -98,16 +97,17 @@ function draw() {
   fill('#ffffff');
   textAlign(LEFT, TOP);
   
+  // 텍스트 출력 및 버튼 실시간 위치 업데이트 호출
   if (isShowingResult) {
     textSize(14);
     if (currentStage === 5) {
-      text(`${resultMsg}\n\n[최종 스탯: 에겐 ${stats.에겐력} / 테토 ${stats.테토력} / 정떨 ${stats.정떨}]`, 30, textBoxY + 15, width - 60, textBoxH - 20);
+      text(`${resultMsg}\n\n[최종 스탯: 에겐 ${stats.에겐력} / 테토 ${stats.테토력} / 정떨 ${stats.정떨}]`, 30, textBoxY + 15, width - 60, 150);
       
       if (endingImg) {
         imageMode(CENTER);
-        let imgW = min(400, width - 40); 
+        let imgW = min(400, width - 60); 
         let imgH = imgW * (300 / 400);   
-        let imgY = textBoxY + textBoxH + 15 + (imgH / 2);
+        let imgY = textBoxY + 180 + (imgH / 2);
         image(endingImg, width / 2, imgY, imgW, imgH); 
       } else {
         fill('#ffffff');
@@ -115,12 +115,89 @@ function draw() {
         text(`[${maxStatResult} 일러스트 공간]`, width / 2, 350);
       }
     } else {
-      text(resultMsg, 30, textBoxY + 20, width - 60, textBoxH - 40);
+      text(resultMsg, 30, textBoxY + 20, width - 60, 150);
+      // 결과 창일 때 다음 버튼 위치 정렬
+      repositionActionButtons();
     }
   } else {
     textSize(14);
     let displayPrompt = getStagePromptText();
-    text(displayPrompt, 30, textBoxY + 20, width - 60, textBoxH - 40);
+    text(displayPrompt, 30, textBoxY + 20, width - 60, 160); // 텍스트 영역을 위쪽으로 제한
+    
+    // 선택지 활성화 상태라면 버튼들을 텍스트박스 안쪽 하단 여백에 강제 배치
+    if (currentStage !== 5 || scenarioStep !== 0) {
+      repositionChoiceButtons();
+    }
+  }
+}
+
+// 🛠️ 핵심 수정: 버튼들을 텍스트 상자 내부 하단(검은 여백)으로 정밀 배치하는 함수
+function repositionChoiceButtons() {
+  let startY = textBoxY + 180; // 상황 글귀 아래 여백 시작점
+  let btnW = width - 60;       // 박스 안쪽 패딩 고려한 너비
+  let btnH = 45;               // 버튼 높이
+  let gap = 10;                // 버튼 사이 간격
+
+  let canvasElement = document.getElementById('defaultCanvas0');
+  if (!canvasElement) return;
+  
+  // 캔버스의 실제 브라우저상 절대 좌표 및 크기 계산 (반응형 대응)
+  let rectBounds = canvasElement.getBoundingClientRect();
+  let scaleX = rectBounds.width / width;
+  let scaleY = rectBounds.height / 600;
+
+  for (let i = 0; i < 3; i++) {
+    if (currentOptions.length > 0 && choiceButtons[i].style('display') !== 'none') {
+      let localX = 30;
+      let localY = startY + i * (btnH + gap);
+      
+      // 브라우저 뷰포트 스케일에 맞춰 absolute 위치 계산
+      choiceButtons[i].position(rectBounds.left + localX * scaleX, rectBounds.top + localY * scaleY);
+      choiceButtons[i].style('width', (btnW * scaleX) + 'px');
+      choiceButtons[i].style('height', (btnH * scaleY) + 'px');
+      choiceButtons[i].style('position', 'absolute');
+    }
+  }
+}
+
+// 액션 버튼(다음/다시하기) 위치 정렬 함수
+function repositionActionButtons() {
+  let canvasElement = document.getElementById('defaultCanvas0');
+  if (!canvasElement) return;
+  
+  let rectBounds = canvasElement.getBoundingClientRect();
+  let scaleX = rectBounds.width / width;
+  let scaleY = rectBounds.height / 600;
+
+  let localX = 30;
+  let localY = textBoxY + 220;
+  let btnW = width - 60;
+  let btnH = 50;
+
+  if (nextActionButton && nextActionButton.style('display') !== 'none') {
+    nextActionButton.position(rectBounds.left + localX * scaleX, rectBounds.top + localY * scaleY);
+    nextActionButton.style('width', (btnW * scaleX) + 'px');
+    nextActionButton.style('height', (btnH * scaleY) + 'px');
+    nextActionButton.style('position', 'absolute');
+  }
+
+  if (finalizeBtn && finalizeBtn.style('display') !== 'none') {
+    let finalY = textBoxY + 400;
+    finalizeBtn.position(rectBounds.left + localX * scaleX, rectBounds.top + finalY * scaleY);
+    finalizeBtn.style('width', (btnW * scaleX) + 'px');
+    finalizeBtn.style('height', (btnH * scaleY) + 'px');
+    finalizeBtn.style('position', 'absolute');
+  }
+}
+
+// 브라우저 크기가 바뀔 때 실시간으로 버튼 좌표 재조정 보정
+function windowResized() {
+  let canvasWidth = min(windowWidth, 600);
+  resizeCanvas(canvasWidth, 600);
+  if (!isShowingResult) {
+    repositionChoiceButtons();
+  } else {
+    repositionActionButtons();
   }
 }
 
@@ -280,7 +357,7 @@ function loadStageScenario() {
 
   shuffle(currentOptions, true);
 
-  // 버튼들이 HTML 구조 속에서 자연스럽게 노출되므로 순서 꼬임 방지됨
+  // 버튼 활성화 및 내용 삽입 (위치는 draw 루프 내 repositionChoiceButtons에서 실시간 제어)
   for (let i = 0; i < 3; i++) {
     choiceButtons[i].html(`${i + 1}. ${currentOptions[i][0]}`);
     choiceButtons[i].mousePressed((e) => {
@@ -415,13 +492,13 @@ function mousePressed() {
         resultMsg = "🌱 [테토 고백]\n\n(먼 곳을 응시하며 툭 내뱉듯이)\n나랑 사귀자. 잘해줄게.";
         endingImg = imgTeto;
       } else {
-        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사ꈈ 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
+        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사귈 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
         endingImg = imgJung;
       }
       
       if (!finalizeBtn) {
         finalizeBtn = createButton('게임 완전히 처음부터 다시하기');
-        finalizeBtn.parent('button-container'); 
+        finalizeBtn.parent('game-container'); 
         finalizeBtn.class('action-btn');
         finalizeBtn.mousePressed((e) => {
           if(e) e.stopPropagation();
