@@ -8,43 +8,48 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
   
   <style>
-    /* 1. 전체 배경 및 기본 여백 초기화 */
     html, body {
       margin: 0;
       padding: 0;
-      background-color: #1a1a2e; /* sketch.js의 배경색과 일치시켜 일체감 부여 */
+      background-color: #1a1a2e; 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      
-      /* PC/모바일 양쪽 다 콘텐츠가 길어지면 스크롤이 가능하도록 설정 */
       width: 100%;
       min-height: 100vh;
       overflow-x: hidden;
       overflow-y: auto; 
       
-      /* 화면 중앙 정렬 레이아웃 구성 */
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
     }
 
-    /* 2. p5.js가 생성하는 캔버스(게임창) 스타일 지정 */
+    /* 🛠️ 버그 수정 핵심: 게임창과 버튼들을 한 몸으로 묶어주는 절대 기준점 주머니 */
+    #game-container {
+      position: relative; /* 내부 absolute 요소들이 이 컨테이너를 기준으로 정렬됨 */
+      margin-top: 10px;
+      width: 100%;
+      max-width: 600px;  /* sketch.js에서 설정한 최대 canvas 너비와 일치시킴 */
+      display: flex;
+      justify-content: center;
+    }
+
     canvas {
       display: block;
-      margin-top: 10px; /* 상단 스탯바가 시각적으로 답답하지 않게 여백 추가 */
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* PC 화면에서 게임창 경계가 예쁘게 보이도록 그림자 효과 */
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); 
       border-radius: 8px;
     }
 
-    /* 3. p5.js가 생성하는 HTML 버튼들(선택지, 다음버튼 등)의 폰트 가독성 보완 */
     button {
       font-family: inherit !important;
       font-weight: 500;
-      -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 투명한 주황색 네모 잔상 제거 */
+      -webkit-tap-highlight-color: transparent; 
     }
   </style>
 </head>
 <body>
+
+  <div id="game-container"></div>
 
   <script src="sketch.js"></script>
 
