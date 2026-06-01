@@ -42,19 +42,19 @@ function preload() {
 // ========================================================
 function setup() {
   let canvasWidth = min(windowWidth, 600);
+  
+  // 🛠️ 수정: 캔버스를 전용 홀더인 #canvas-holder 내부에 넣습니다.
   let myCanvas = createCanvas(canvasWidth, 600); 
-  myCanvas.parent('game-container');
+  myCanvas.parent('canvas-holder');
   
   let canvasElement = document.getElementById('defaultCanvas0');
   if (canvasElement) {
     canvasElement.style.touchAction = 'none';
   }
   
-  // 선택지용 html 버튼 3개 동적 생성 및 하단 컨테이너로 이동
+  // 선택지용 html 버튼 3개 동적 생성 및 하단 버튼 컨테이너로 귀속
   for (let i = 0; i < 3; i++) {
     let btn = createButton('');
-    
-    // 🛠️ 위치 오류 해결의 핵심: 버튼 위치 계산을 없애고 HTML 바구니 리스트로 귀속시킴
     btn.parent('button-container'); 
     btn.hide(); 
     choiceButtons.push(btn);
@@ -63,7 +63,7 @@ function setup() {
   // 마일스톤(다음 이야기 진행하기) 버튼 생성
   nextActionButton = createButton('▶ 다음 이야기 진행하기');
   nextActionButton.parent('button-container'); 
-  nextActionButton.class('action-btn'); // CSS에서 중앙 정렬 스타일을 먹이기 위한 클래스 지정
+  nextActionButton.class('action-btn'); 
   
   nextActionButton.mousePressed((e) => {
     if(e) e.stopPropagation();
@@ -184,9 +184,6 @@ function getStagePromptText() {
   return "";
 }
 
-// ========================================================
-// 🔀 [기능] 각 상황별 선택지 매칭 및 노출
-// ========================================================
 function loadStageScenario() {
   isShowingResult = false;
   nextActionButton.hide();
@@ -283,7 +280,7 @@ function loadStageScenario() {
 
   shuffle(currentOptions, true);
 
-  // 🛠️ 대수정: position 좌표 수동 대입 전면 삭제 (HTML 구조가 알아서 크기 조절함)
+  // 버튼들이 HTML 구조 속에서 자연스럽게 노출되므로 순서 꼬임 방지됨
   for (let i = 0; i < 3; i++) {
     choiceButtons[i].html(`${i + 1}. ${currentOptions[i][0]}`);
     choiceButtons[i].mousePressed((e) => {
@@ -358,7 +355,7 @@ function handleOptionSelect(index) {
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n인파를 헤치며 혼자 나아갔다. 뒤돌아보니 그 애가 인파 속에서 사라졌다."; stats.정떨 += scoreValue; }
       scenarioStep = 12;
     } else if (scenarioStep === 12) {
-      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n초코우유를 사 들고 벤치에 앉아 공식 통화를 이어갔다. 달콤한 웃음이 가득하다."; stats.에겐력 += scoreValue; }
+      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n초코우유를 사 들고 벤치에 앉아 통화를 이어갔다. 달콤한 웃음이 가득하다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n'주소 보내. 지금 바로 간다.' 취했어도 걱정이 앞서는 직진남."; stats.테토력 += scoreValue; }
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n전화를 뚝 끊어버렸다. 다음 날 카톡이 온다. '어젠 왜 전화했어?'"; stats.정떨 += scoreValue; }
       scenarioStep = 13;
@@ -418,7 +415,7 @@ function mousePressed() {
         resultMsg = "🌱 [테토 고백]\n\n(먼 곳을 응시하며 툭 내뱉듯이)\n나랑 사귀자. 잘해줄게.";
         endingImg = imgTeto;
       } else {
-        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사귈 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
+        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사ꈈ 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
         endingImg = imgJung;
       }
       
