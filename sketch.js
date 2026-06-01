@@ -22,7 +22,7 @@ let endingImg = null;
 let maxStatResult = "";
 
 let textBoxY = 65;
-let textBoxH = 260; // 상황 텍스트 전체 박스 높이
+let textBoxH = 515; // 고정된 큰 텍스트 박스 높이 유지
 
 // ========================================================
 // ⏳ [Preload] 이미지 자원 미리 불러오기
@@ -55,7 +55,7 @@ function setup() {
     let btn = createButton('');
     btn.parent('game-container'); 
     
-    // 기존 네이비 테마 색상으로 스타일 원복 및 고정
+    // 기존 네이비 테마 색상 및 모바일 줄바꿈 방어 코드 추가
     btn.style('background-color', '#0f3460');
     btn.style('color', '#ffffff');
     btn.style('font-size', '14px');
@@ -64,10 +64,16 @@ function setup() {
     btn.style('border-radius', '4px');
     btn.style('cursor', 'pointer');
     btn.style('text-align', 'left');
-    btn.style('padding', '0 16px');
+    btn.style('padding', '8px 16px'); // 위아래 여백을 주어 글자 크기에 반응하도록 변경
     btn.style('box-sizing', 'border-box');
     btn.style('box-shadow', '0 2px 5px rgba(0,0,0,0.2)');
     btn.style('-webkit-tap-highlight-color', 'transparent');
+    
+    // 🛠️ 모바일 글자 잘림 방지 핵심 스타일
+    btn.style('white-space', 'normal'); // 글자가 넘치면 자동으로 다음 줄로 넘김
+    btn.style('word-break', 'keep-all'); // 한글 단어가 어색하게 끊기지 않게 보호
+    btn.style('display', 'flex');
+    btn.style('align-items', 'center'); // 여러 줄이 되어도 세로 중앙 정렬 유지
     
     // 마우스 호버 효과
     btn.mouseOver(() => btn.style('background-color', '#e94560'));
@@ -158,10 +164,9 @@ function draw() {
 
 // 버튼들을 텍스트 상자 내부 하단(검은 여백)으로 정밀 배치하는 함수
 function repositionChoiceButtons() {
-  let startY = textBoxY + 180; 
+  let startY = textBoxY + 200; // 상황 안내문 아래 적당한 여백 확보
   let btnW = width - 60;       
-  let btnH = 45;               
-  let gap = 10;                
+  let gap = 12; // 버튼 사이 간격 조금 더 넒힘
 
   let canvasElement = document.getElementById('defaultCanvas0');
   if (!canvasElement) return;
@@ -170,16 +175,25 @@ function repositionChoiceButtons() {
   let scaleX = rectBounds.width / width;
   let scaleY = rectBounds.height / 600;
 
+  let currentTop = startY;
+
   for (let i = 0; i < 3; i++) {
     if (currentOptions.length > 0 && choiceButtons[i].style('display') !== 'none') {
       let localX = 30;
-      let localY = startY + i * (btnH + gap);
       
-      choiceButtons[i].position(rectBounds.left + localX * scaleX, rectBounds.top + localY * scaleY);
+      // 고정 높이를 강제하지 않고 최소 높이와 반응형 크기 지정
+      choiceButtons[i].position(rectBounds.left + localX * scaleX, rectBounds.top + currentTop * scaleY);
       choiceButtons[i].style('width', (btnW * scaleX) + 'px');
-      choiceButtons[i].style('height', (btnH * scaleY) + 'px');
-      choiceButtons[i].style('line-height', (btnH * scaleY) + 'px'); 
+      choiceButtons[i].style('min-height', (45 * scaleY) + 'px'); // 내용에 따라 유연하게 늘어나도록 변경
       choiceButtons[i].style('position', 'absolute');
+      
+      // 모바일 기기별 글자 크기 최적화 보정
+      let responsiveFontSize = max(12, 14 * scaleX);
+      choiceButtons[i].style('font-size', responsiveFontSize + 'px');
+
+      // 글자가 늘어나 여러 줄이 되었을 때를 대비해, 다음 버튼의 상단 위치를 누적 계산
+      // 대략 한 줄당 늘어나는 높이를 감안한 안전한 간격 배치
+      currentTop += 52 + gap; 
     }
   }
 }
@@ -434,7 +448,7 @@ function handleOptionSelect(index) {
       if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n지그시 눈을 맞추며 한 걸음 가까이 앉았다.\n방 안의 공기가 순식간에 멜로 영화처럼 텐션이 올라간다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n장난을 치며 분위기를 풀었다.\n그 애가 빵 터지며 한층 더 편안하고 친밀한 대화가 이어졌다."; stats.테토력 += scoreValue; }
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n로봇처럼 굳어 핸드폰만 보았다.\n방 안에 째깍거리는 시계 소리만 가득했고 분위기는 식었다."; stats.정떨 += scoreValue; }
-      scenarioStep = 9; // 🛠️ 버그 수정: 원래 8로 되어있던 오타를 다음 질문인 9로 정밀 조치!
+      scenarioStep = 9; 
     } else if (scenarioStep === 9) {
       if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n\"네 생각 하면서 기다렸어.\" 바로 전화를 건다.\n수화기 너머로 그 애의 수줍은 웃음소리가 흘러나온다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n새벽 내내 끊이지 않는 스몰 토크와 티키타카 속에서 서로에게 깊이 빠져들었다."; stats.테토력 += scoreValue; }
@@ -467,7 +481,6 @@ function handleOptionSelect(index) {
   nextActionButton.show();
 }
 
-// ...이하 코드 동일하여 축약 (필요시 전체 붙여넣기 하셔도 무방합니다)...
 function moveToNextStep() {
   nextActionButton.hide();
   
