@@ -112,7 +112,7 @@ function draw() {
   
   // 상황 텍스트 상자 그리기
   fill('#0f172a');
-  noStroke(); // 🛠️ 수정: 테두리선 완전히 제거
+  noStroke(); 
   
   if (currentStage === 5 && scenarioStep === 1) {
     textBoxH = 120;
@@ -228,7 +228,7 @@ function windowResized() {
 
 function drawTopStatsBar() {
   fill('#16213e');
-  noStroke(); // 🛠️ 수정: 상단 스탯창 테두리선 완전히 제거
+  noStroke(); 
   rect(15, 10, width - 30, 40, 5);
   
   fill('#ffffff');
@@ -434,7 +434,7 @@ function handleOptionSelect(index) {
       if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n지그시 눈을 맞추며 한 걸음 가까이 앉았다.\n방 안의 공기가 순식간에 멜로 영화처럼 텐션이 올라간다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n장난을 치며 분위기를 풀었다.\n그 애가 빵 터지며 한층 더 편안하고 친밀한 대화가 이어졌다."; stats.테토력 += scoreValue; }
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n로봇처럼 굳어 핸드폰만 보았다.\n방 안에 째깍거리는 시계 소리만 가득했고 분위기는 식었다."; stats.정떨 += scoreValue; }
-      scenarioStep = 8;
+      scenarioStep = 9; // 🛠️ 버그 수정: 원래 8로 되어있던 오타를 다음 질문인 9로 정밀 조치!
     } else if (scenarioStep === 9) {
       if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n\"네 생각 하면서 기다렸어.\" 바로 전화를 건다.\n수화기 너머로 그 애의 수줍은 웃음소리가 흘러나온다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n새벽 내내 끊이지 않는 스몰 토크와 티키타카 속에서 서로에게 깊이 빠져들었다."; stats.테토력 += scoreValue; }
@@ -444,7 +444,7 @@ function handleOptionSelect(index) {
   }
   else if (currentStage === 4) {
     if (scenarioStep === 10) {
-      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n우산을 슬쩍 건넸다. 수줍지만 따뜻한 배려가 마음에 닿았다."; stats.에겐력 += scoreValue; }
+      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n우산을 슬쩍 건넨다. 수줍지만 따뜻한 배려가 마음에 닿았다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n옆에 서서 우산을 같이 씌워준다. 좁은 우산 아래 어깨가 닿을 듯 말 듯 분위기가 묘해진다."; stats.테토력 += scoreValue; }
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n혼자 택시에 올라탔다. 뒤돌아보니 그 애, 비 맞으며 멍하니 서 있다."; stats.정떨 += scoreValue; }
       scenarioStep = 11;
@@ -467,6 +467,7 @@ function handleOptionSelect(index) {
   nextActionButton.show();
 }
 
+// ...이하 코드 동일하여 축약 (필요시 전체 붙여넣기 하셔도 무방합니다)...
 function moveToNextStep() {
   nextActionButton.hide();
   
