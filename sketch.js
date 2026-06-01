@@ -44,12 +44,10 @@ function preload() {
 }
 
 // ========================================================
-// ⚙️ [Setup] 모바일 반응형 캔버스 및 버튼 생성 (위치 고정 반영)
+// ⚙️ [Setup] 모바일 반응형 캔버스 및 버튼 생성
 // ========================================================
 function setup() {
   let canvasWidth = min(windowWidth, 600);
-  
-  // 🛠️ 수정: 캔버스를 HTML의 #game-container 내부에 종속시킵니다.
   let myCanvas = createCanvas(canvasWidth, 600); 
   myCanvas.parent('game-container');
   
@@ -61,8 +59,6 @@ function setup() {
   // 선택지용 html 버튼 3개 동적 생성 및 기본 스타일링
   for (let i = 0; i < 3; i++) {
     let btn = createButton('');
-    
-    // 🛠️ 수정: 버튼들의 기준점을 #game-container 바구니로 묶어줍니다.
     btn.parent('game-container'); 
     
     btn.style('background-color', '#0f3460');
@@ -72,7 +68,12 @@ function setup() {
     btn.style('border-radius', '4px');
     btn.style('cursor', 'pointer');
     btn.style('text-align', 'left');
-    btn.style('padding', '10px 15px');
+    
+    // 🛠️ 수정 핵심 1: 고정 높이를 없애고, 내부 여백을 주어 글자 수에 따라 늘어나게 유연화
+    btn.style('height', 'auto');
+    btn.style('padding', '12px 15px');
+    btn.style('line-height', '1.4'); // 줄간격 보정
+    btn.style('white-space', 'normal'); // 모바일에서 자동 줄바꿈 허용
     
     btn.mouseOver(() => btn.style('background-color', '#e94560'));
     btn.mouseOut(() => btn.style('background-color', '#0f3460'));
@@ -83,7 +84,7 @@ function setup() {
   
   // 마일스톤(다음 이야기 진행하기) 버튼 생성
   nextActionButton = createButton('▶ 다음 이야기 진행하기');
-  nextActionButton.parent('game-container'); // 🛠️ 수정: 바구니 내부 귀속
+  nextActionButton.parent('game-container'); 
   nextActionButton.style('background-color', '#e94560');
   nextActionButton.style('color', 'white');
   nextActionButton.style('font-size', '14px');
@@ -91,6 +92,7 @@ function setup() {
   nextActionButton.style('border-radius', '4px');
   nextActionButton.style('cursor', 'pointer');
   nextActionButton.style('text-align', 'center');
+  nextActionButton.style('padding', '12px 0');
   
   nextActionButton.mousePressed((e) => {
     if(e) e.stopPropagation();
@@ -316,17 +318,23 @@ function loadStageScenario() {
 
   shuffle(currentOptions, true);
 
-  // 🛠️ 수정: PC 화면 중앙 정렬 시 버튼이 알맞게 매칭되도록 캔버스 왼쪽 마진(X좌표는 15 고정) 보정
+  // 🛠️ 수정 핵심 2: 이전 버튼의 렌더링된 실제 높이를 계산하여 다음 버튼의 시작 위치(Y)를 유연하게 누적 배정합니다.
+  let currentY = textBoxY + textBoxH + 15;
+  
   for (let i = 0; i < 3; i++) {
     choiceButtons[i].html(`${i + 1}. ${currentOptions[i][0]}`);
-    choiceButtons[i].position(15, textBoxY + textBoxH + 15 + (i * 50)); 
-    choiceButtons[i].size(width - 30, 42); 
+    choiceButtons[i].size(width - 30, AUTO); // 너비는 꽉 채우되, 높이는 콘텐츠 비례 오토 설정
+    choiceButtons[i].position(15, currentY); 
     
     choiceButtons[i].mousePressed((e) => {
       if(e) e.stopPropagation(); 
       handleOptionSelect(i);
     });
     choiceButtons[i].show();
+    
+    // 현재 버튼이 배치된 실제 높이값(픽셀)을 가져와 간격(10px)을 더해 다음 버튼 Y좌표로 넘겨줍니다.
+    let allocatedHeight = choiceButtons[i].elt.offsetHeight;
+    currentY += allocatedHeight + 10; 
   }
 }
 
@@ -466,7 +474,7 @@ function mousePressed() {
         resultMsg = "🌱 [테토 고백]\n\n(먼 곳을 응시하며 툭 내뱉듯이)\n나랑 사귀자. 잘해줄게.";
         endingImg = imgTeto;
       } else {
-        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사귈 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
+        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사ꈈ 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
         endingImg = imgJung;
       }
       
@@ -475,13 +483,14 @@ function mousePressed() {
       
       if (!finalizeBtn) {
         finalizeBtn = createButton('게임 완전히 처음부터 다시하기');
-        finalizeBtn.parent('game-container'); // 🛠️ 수정: 바구니 내부 귀속
+        finalizeBtn.parent('game-container'); 
         finalizeBtn.style('background-color', '#e94560');
         finalizeBtn.style('color', 'white');
         finalizeBtn.style('border', 'none');
         finalizeBtn.style('border-radius', '4px');
         finalizeBtn.style('cursor', 'pointer');
         finalizeBtn.style('text-align', 'center');
+        finalizeBtn.style('padding', '10px 0');
         finalizeBtn.mousePressed((e) => {
           if(e) e.stopPropagation();
           window.location.reload();
