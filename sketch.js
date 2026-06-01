@@ -528,7 +528,7 @@ function mousePressed() {
         resultMsg = "🌱 [테토 고백]\n\n(먼 곳을 응시하며 툭 내뱉듯이)\n나랑 사귀자. 잘해줄게.";
         endingImg = imgTeto;
       } else {
-        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사ꈈ 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
+        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사귈 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
         endingImg = imgJung;
       }
       
