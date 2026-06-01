@@ -7,26 +7,20 @@ let stats = {
   정떨: 0 
 }; 
 
-// 게임 진행 단계 제어 변수 (1 ~ 5단계)
 let currentStage = 1; 
+let scenarioStep = 0;      
+let isShowingResult = false; 
+let resultMsg = "";        
+let currentOptions = [];   
 
-// 각 스테이지 내의 상태 관리 변수들
-let scenarioStep = 0;      // 0: 프롤로그, 1이상: 세부 상황 번호
-let isShowingResult = false; // 현재 선택에 대한 피드백(결과) 화면을 보고 있는지 여부
-let resultMsg = "";        // 화면에 출력할 결과 피드백 텍스트 저장소
-let currentOptions = [];   // 무작위로 섞인 현재 선택지 데이터를 담는 배열
-
-// UI 컴포넌트 (버튼 및 입력 장치)
 let choiceButtons = [];
 let nextActionButton;
-let finalizeBtn = null; // 리셋 버튼 전역 관리
+let finalizeBtn = null; 
 
-// 엔딩 이미지 공간
 let imgEgen, imgTeto, imgJung;
 let endingImg = null;
 let maxStatResult = "";
 
-// 메인 텍스트 박스 Y 규격 제어용
 let textBoxY = 65;
 let textBoxH = 260;
 
@@ -56,43 +50,20 @@ function setup() {
     canvasElement.style.touchAction = 'none';
   }
   
-  // 선택지용 html 버튼 3개 동적 생성 및 기본 스타일링
+  // 선택지용 html 버튼 3개 동적 생성 및 하단 컨테이너로 이동
   for (let i = 0; i < 3; i++) {
     let btn = createButton('');
-    btn.parent('game-container'); 
     
-    btn.style('background-color', '#0f3460');
-    btn.style('color', 'white');
-    btn.style('font-size', '14px');
-    btn.style('border', 'none');
-    btn.style('border-radius', '4px');
-    btn.style('cursor', 'pointer');
-    btn.style('text-align', 'left');
-    
-    // 🛠️ 수정 핵심 1: 고정 높이를 없애고, 내부 여백을 주어 글자 수에 따라 늘어나게 유연화
-    btn.style('height', 'auto');
-    btn.style('padding', '12px 15px');
-    btn.style('line-height', '1.4'); // 줄간격 보정
-    btn.style('white-space', 'normal'); // 모바일에서 자동 줄바꿈 허용
-    
-    btn.mouseOver(() => btn.style('background-color', '#e94560'));
-    btn.mouseOut(() => btn.style('background-color', '#0f3460'));
-    
+    // 🛠️ 위치 오류 해결의 핵심: 버튼 위치 계산을 없애고 HTML 바구니 리스트로 귀속시킴
+    btn.parent('button-container'); 
     btn.hide(); 
     choiceButtons.push(btn);
   }
   
   // 마일스톤(다음 이야기 진행하기) 버튼 생성
   nextActionButton = createButton('▶ 다음 이야기 진행하기');
-  nextActionButton.parent('game-container'); 
-  nextActionButton.style('background-color', '#e94560');
-  nextActionButton.style('color', 'white');
-  nextActionButton.style('font-size', '14px');
-  nextActionButton.style('border', 'none');
-  nextActionButton.style('border-radius', '4px');
-  nextActionButton.style('cursor', 'pointer');
-  nextActionButton.style('text-align', 'center');
-  nextActionButton.style('padding', '12px 0');
+  nextActionButton.parent('button-container'); 
+  nextActionButton.class('action-btn'); // CSS에서 중앙 정렬 스타일을 먹이기 위한 클래스 지정
   
   nextActionButton.mousePressed((e) => {
     if(e) e.stopPropagation();
@@ -153,9 +124,6 @@ function draw() {
   }
 }
 
-// ========================================================
-// 📊 [기능] 상단 공통 스탯 표시창
-// ========================================================
 function drawTopStatsBar() {
   fill('#16213e');
   stroke('#ffffff');
@@ -169,9 +137,6 @@ function drawTopStatsBar() {
   text(`🧸테토: ${stats.테토력} | 🦊에겐: ${stats.에겐력} | 💔정떨: ${stats.정떨}`, width / 2, 30);
 }
 
-// ========================================================
-// 📜 [기능] 각 단계별 지문 텍스트 반환기
-// ========================================================
 function getStagePromptText() {
   if (currentStage === 1) {
     if (scenarioStep === 0) {
@@ -220,7 +185,7 @@ function getStagePromptText() {
 }
 
 // ========================================================
-// 🔀 [기능] 각 상황별 선택지 배치 및 반응형 크기 주입
+// 🔀 [기능] 각 상황별 선택지 매칭 및 노출
 // ========================================================
 function loadStageScenario() {
   isShowingResult = false;
@@ -318,32 +283,19 @@ function loadStageScenario() {
 
   shuffle(currentOptions, true);
 
-  // 🛠️ 수정 핵심 2: 이전 버튼의 렌더링된 실제 높이를 계산하여 다음 버튼의 시작 위치(Y)를 유연하게 누적 배정합니다.
-  let currentY = textBoxY + textBoxH + 15;
-  
+  // 🛠️ 대수정: position 좌표 수동 대입 전면 삭제 (HTML 구조가 알아서 크기 조절함)
   for (let i = 0; i < 3; i++) {
     choiceButtons[i].html(`${i + 1}. ${currentOptions[i][0]}`);
-    choiceButtons[i].size(width - 30, AUTO); // 너비는 꽉 채우되, 높이는 콘텐츠 비례 오토 설정
-    choiceButtons[i].position(15, currentY); 
-    
     choiceButtons[i].mousePressed((e) => {
       if(e) e.stopPropagation(); 
       handleOptionSelect(i);
     });
     choiceButtons[i].show();
-    
-    // 현재 버튼이 배치된 실제 높이값(픽셀)을 가져와 간격(10px)을 더해 다음 버튼 Y좌표로 넘겨줍니다.
-    let allocatedHeight = choiceButtons[i].elt.offsetHeight;
-    currentY += allocatedHeight + 10; 
   }
 }
 
-// ========================================================
-// 🎯 [기능] 버튼 선택 피드백 정산
-// ========================================================
 function handleOptionSelect(index) {
   let chosenData = currentOptions[index];
-  let textLabel = chosenData[0];
   let type = chosenData[1];
   let scoreValue = chosenData[2];
 
@@ -406,7 +358,7 @@ function handleOptionSelect(index) {
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n인파를 헤치며 혼자 나아갔다. 뒤돌아보니 그 애가 인파 속에서 사라졌다."; stats.정떨 += scoreValue; }
       scenarioStep = 12;
     } else if (scenarioStep === 12) {
-      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n초코우유를 사 들고 벤치에 앉아 통화를 이어갔다. 달콤한 웃음이 가득하다."; stats.에겐력 += scoreValue; }
+      if (type === "에겐") { resultMsg = "💬 [선택 결과]\n\n초코우유를 사 들고 벤치에 앉아 공식 통화를 이어갔다. 달콤한 웃음이 가득하다."; stats.에겐력 += scoreValue; }
       if (type === "테토") { resultMsg = "💬 [선택 결과]\n\n'주소 보내. 지금 바로 간다.' 취했어도 걱정이 앞서는 직진남."; stats.테토력 += scoreValue; }
       if (type === "정떨") { resultMsg = "💬 [선택 결과]\n\n전화를 뚝 끊어버렸다. 다음 날 카톡이 온다. '어젠 왜 전화했어?'"; stats.정떨 += scoreValue; }
       scenarioStep = 13;
@@ -416,14 +368,9 @@ function handleOptionSelect(index) {
   isShowingResult = true;
   for (let btn of choiceButtons) btn.hide(); 
   
-  nextActionButton.position(15, textBoxY + textBoxH + 20);
-  nextActionButton.size(width - 30, 45);
   nextActionButton.show();
 }
 
-// ========================================================
-// ⏭️ [기능] 다음 상황 스테이지 제어기
-// ========================================================
 function moveToNextStep() {
   nextActionButton.hide();
   
@@ -447,9 +394,6 @@ function moveToNextStep() {
   loadStageScenario();
 }
 
-// ========================================================
-// 🖱️ [모바일 터치/클릭 이벤트] 프롤로그 패스 및 엔딩 연산
-// ========================================================
 function mousePressed() {
   if (mouseX > 15 && mouseX < width - 15 && mouseY > textBoxY && mouseY < textBoxY + textBoxH) {
     
@@ -474,30 +418,19 @@ function mousePressed() {
         resultMsg = "🌱 [테토 고백]\n\n(먼 곳을 응시하며 툭 내뱉듯이)\n나랑 사귀자. 잘해줄게.";
         endingImg = imgTeto;
       } else {
-        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사ꈈ 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
+        resultMsg = "💥 [정떨 고백]\n\n(울먹이며)\n나랑 사귈 거야 말 거야? 대답 안 해? 너 내가 찬 거다?";
         endingImg = imgJung;
       }
       
-      let imgH = min(400, width - 40) * (300 / 400);
-      let btnY = textBoxY + textBoxH + 15 + imgH + 25;
-      
       if (!finalizeBtn) {
         finalizeBtn = createButton('게임 완전히 처음부터 다시하기');
-        finalizeBtn.parent('game-container'); 
-        finalizeBtn.style('background-color', '#e94560');
-        finalizeBtn.style('color', 'white');
-        finalizeBtn.style('border', 'none');
-        finalizeBtn.style('border-radius', '4px');
-        finalizeBtn.style('cursor', 'pointer');
-        finalizeBtn.style('text-align', 'center');
-        finalizeBtn.style('padding', '10px 0');
+        finalizeBtn.parent('button-container'); 
+        finalizeBtn.class('action-btn');
         finalizeBtn.mousePressed((e) => {
           if(e) e.stopPropagation();
           window.location.reload();
         });
       }
-      finalizeBtn.position(15, btnY);
-      finalizeBtn.size(width - 30, 40);
       finalizeBtn.show();
     }
   }
