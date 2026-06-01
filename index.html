@@ -24,15 +24,23 @@
       align-items: center;
     }
 
-    /* 게임 전체 요소를 감싸는 메인 바구니 */
+    /* 메인 컨테이너: 모든 요소가 무조건 '위에서 아래로' 순서대로만 쌓이도록 강제 */
     #game-container {
-      position: relative; 
-      margin-top: 10px;
       width: 100%;
       max-width: 600px;  
       display: flex;
-      flex-direction: column; /* 요소들을 세로로 일렬 정렬 */
+      flex-direction: column; 
       align-items: center;
+      padding-top: 10px;
+      padding-bottom: 30px;
+      box-sizing: border-box;
+    }
+
+    /* 캔버스가 들어갈 자리 */
+    #canvas-holder {
+      width: 100%;
+      display: flex;
+      justify-content: center;
     }
 
     canvas {
@@ -41,21 +49,22 @@
       border-radius: 8px;
     }
 
-    /* 🛠️ 추가: 버튼들이 들어갈 전용 하단 구역 (자동 줄바꿈 및 정렬 핵심) */
+    /* 🛠️ 구조 대수정: 캔버스 바로 '아래'에 올 수 있도록 순서 고정 */
     #button-container {
-      width: calc(100% - 30px); /* 캔버스 좌우 여백 15px씩 맞춤 */
+      width: 100%; 
+      padding: 0 15px; /* 캔버스 안쪽의 사각형 패딩(15px)과 양옆 라인을 칼같이 맞춤 */
       margin-top: 15px;
       display: flex;
       flex-direction: column;
-      gap: 10px; /* 버튼 사이의 간격 고정 */
+      gap: 12px; /* 버튼과 버튼 사이 간격 */
       box-sizing: border-box;
     }
 
-    /* p5.js가 만드는 모든 버튼들의 공통 스타일을 CSS로 완전 제어 */
+    /* 버튼 스타일 전면 제어 (가출 및 역주행 차단) */
     #button-container button {
       width: 100% !important;
       height: auto !important;
-      position: static !important; /* p5.js의 강제 위치 지정을 무효화 */
+      position: static !important; /* p5.js가 억지로 위치 지정하는 것 완전 무력화 */
       background-color: #0f3460;
       color: white;
       font-size: 14px;
@@ -65,10 +74,11 @@
       border-radius: 4px;
       cursor: pointer;
       text-align: left;
-      padding: 12px 15px;
+      padding: 14px 16px;
       line-height: 1.4;
       white-space: normal;
       box-sizing: border-box;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       -webkit-tap-highlight-color: transparent; 
     }
 
@@ -76,16 +86,19 @@
       background-color: #e94560;
     }
 
-    /* 다음 구역 및 리셋 버튼은 가운데 정렬 */
+    /* 액션 버튼(다음 버튼, 처음부터 다시하기 버튼) 전용 스타일 */
     #button-container .action-btn {
       text-align: center !important;
       background-color: #e94560;
+      font-weight: bold !important;
     }
   </style>
 </head>
 <body>
 
   <div id="game-container">
+    <div id="canvas-holder"></div>
+    
     <div id="button-container"></div>
   </div>
 
