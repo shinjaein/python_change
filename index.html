@@ -24,14 +24,15 @@
       align-items: center;
     }
 
-    /* 🛠️ 버그 수정 핵심: 게임창과 버튼들을 한 몸으로 묶어주는 절대 기준점 주머니 */
+    /* 게임 전체 요소를 감싸는 메인 바구니 */
     #game-container {
-      position: relative; /* 내부 absolute 요소들이 이 컨테이너를 기준으로 정렬됨 */
+      position: relative; 
       margin-top: 10px;
       width: 100%;
-      max-width: 600px;  /* sketch.js에서 설정한 최대 canvas 너비와 일치시킴 */
+      max-width: 600px;  
       display: flex;
-      justify-content: center;
+      flex-direction: column; /* 요소들을 세로로 일렬 정렬 */
+      align-items: center;
     }
 
     canvas {
@@ -40,16 +41,53 @@
       border-radius: 8px;
     }
 
-    button {
+    /* 🛠️ 추가: 버튼들이 들어갈 전용 하단 구역 (자동 줄바꿈 및 정렬 핵심) */
+    #button-container {
+      width: calc(100% - 30px); /* 캔버스 좌우 여백 15px씩 맞춤 */
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px; /* 버튼 사이의 간격 고정 */
+      box-sizing: border-box;
+    }
+
+    /* p5.js가 만드는 모든 버튼들의 공통 스타일을 CSS로 완전 제어 */
+    #button-container button {
+      width: 100% !important;
+      height: auto !important;
+      position: static !important; /* p5.js의 강제 위치 지정을 무효화 */
+      background-color: #0f3460;
+      color: white;
+      font-size: 14px;
       font-family: inherit !important;
       font-weight: 500;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: left;
+      padding: 12px 15px;
+      line-height: 1.4;
+      white-space: normal;
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent; 
+    }
+
+    #button-container button:hover {
+      background-color: #e94560;
+    }
+
+    /* 다음 구역 및 리셋 버튼은 가운데 정렬 */
+    #button-container .action-btn {
+      text-align: center !important;
+      background-color: #e94560;
     }
   </style>
 </head>
 <body>
 
-  <div id="game-container"></div>
+  <div id="game-container">
+    <div id="button-container"></div>
+  </div>
 
   <script src="sketch.js"></script>
 
